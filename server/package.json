@@ -1,0 +1,23 @@
+{
+  "name": "wdc-server",
+  "version": "0.0.1",
+  "description": "The server that receives requests from the WDC client mod",
+  "homepage": "https://github.com/CubeBeveled/world-downloader-mod#readme",
+  "bugs": {
+    "url": "https://github.com/CubeBeveled/world-downloader-mod/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CubeBeveled/world-downloader-mod.git"
+  },
+  "license": "ISC",
+  "author": "Beveled Cube",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

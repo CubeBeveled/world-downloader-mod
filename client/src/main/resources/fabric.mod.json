@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "wdc",
+  "version": "${version}",
+  "name": "World Downloader Client",
+  "description": "This mod will send the chunks you visit to an external server",
+  "authors": [
+    "Beveled Cube"
+  ],
+  "contact": {
+    "homepage": "https://github.com/CubeBeveled/world-downloader-mod",
+    "sources": "https://github.com/CubeBeveled/world-downloader-mod"
+  },
+  "license": "MIT",
+  "icon": "assets/wdc/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.beveled.wdc.WDC"
+    ],
+    "fabric-datagen": [
+      "com.beveled.wdc.WDCDataGenerator"
+    ],
+    "client": [
+      "com.beveled.wdc.WDCClient"
+    ]
+  },
+  "mixins": [
+    "wdc.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.17.2",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
