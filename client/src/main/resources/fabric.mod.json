@@ -21,7 +21,7 @@
     "wdc.mixins.json"
   ],
   "custom": {
-    "meteor-client:color": "225,25,25"
+    "meteor-client:color": "35,95,210"
   },
   "depends": {
     "java": ">=21",
