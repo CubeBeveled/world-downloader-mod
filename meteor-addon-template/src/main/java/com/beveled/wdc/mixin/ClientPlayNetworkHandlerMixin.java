@@ -46,7 +46,7 @@ public class ClientPlayNetworkHandlerMixin {
                     String base64Data = Base64.getEncoder().encodeToString(chunkData);
                     String centralUrl = (String) Modules.get().get(ClientModule.class).settings.getDefaultGroup().get("central-url").get();
                     String finalUrl = String.format(
-                        "https://%s/newchunk/%s/%s/%s/%s/%s",
+                        "%s/newchunk/%s/%s/%s/%s/%s",
                         centralUrl.replaceAll("/$", ""),
                         serverInfo.address,
                         username,
@@ -66,7 +66,7 @@ public class ClientPlayNetworkHandlerMixin {
                     HttpClient httpClient = HttpClient.newHttpClient();
                     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 } catch (IOException | URISyntaxException | InterruptedException e) {
-                    ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.toString()));
+                    ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e));
                     throw new RuntimeException(e);
                 }
             })

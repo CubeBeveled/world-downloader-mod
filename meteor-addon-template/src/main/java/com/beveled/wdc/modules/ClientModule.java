@@ -14,7 +14,7 @@ public class ClientModule extends Module {
     private final Setting<String> centralUrl = sgGeneral.add(new StringSetting.Builder()
         .name("central-url")
         .description("The URL of the central server.")
-        .defaultValue("http://us1.sythoptic.com:25008")
+        .defaultValue("http://localhost:3000")
         .build()
     );
 
