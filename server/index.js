@@ -23,11 +23,13 @@ app.post("/newchunk/:server/:author/:version/:dimension/:x/:z", (req, res) => {
     `Received chunk ${x},${z} from ${author} in ${dimension} (${server})`
   );
 
+  const chunkData = Buffer.from(req.body.toString(), "base64");
+
   const chunkPath = `${worldSavePath}/${server}/${dimension}`;
   if (!fs.existsSync(chunkPath)) fs.mkdirSync(chunkPath, { recursive: true });
   fs.writeFileSync(
-    `${chunkPath}/${x} ${z} ${author} ${version} ${time}.bin`,
-    req.body
+    `${chunkPath}/${x} ${z} ${author} ${version}.bin`,
+    chunkData
   );
 
   res.status(200);
