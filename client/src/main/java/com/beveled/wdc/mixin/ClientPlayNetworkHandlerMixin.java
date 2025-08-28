@@ -34,6 +34,7 @@ public class ClientPlayNetworkHandlerMixin {
         if (client.player == null) return;
         String dimension = client.player.getWorld().getDimension().effects().toString();
         String username = client.getSession().getUsername();
+        String version = client.getGameVersion();
 
         if (Thread.currentThread().getName().contains("Netty") && Modules.get().isActive(ClientModule.class)) {
             new Thread(() -> {
@@ -46,10 +47,11 @@ public class ClientPlayNetworkHandlerMixin {
                     String base64Data = Base64.getEncoder().encodeToString(chunkData);
                     String centralUrl = (String) Modules.get().get(ClientModule.class).settings.getDefaultGroup().get("central-url").get();
                     String finalUrl = String.format(
-                        "%s/newchunk/%s/%s/%s/%s/%s",
+                        "%s/newchunk/%s/%s/%s/%s/%s/%s",
                         centralUrl.replaceAll("/$", ""),
                         serverInfo.address,
                         username,
+                        version,
                         dimension,
                         packet.getChunkX(),
                         packet.getChunkZ()
