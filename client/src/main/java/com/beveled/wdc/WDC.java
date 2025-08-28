@@ -1,33 +1,36 @@
 package com.beveled.wdc;
 
-import net.fabricmc.api.ModInitializer;
-
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
-import net.minecraft.world.chunk.WorldChunk;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-
+import com.beveled.wdc.modules.ClientModule;
+import com.mojang.logging.LogUtils;
+import meteordevelopment.meteorclient.addons.GithubRepo;
+import meteordevelopment.meteorclient.addons.MeteorAddon;
+import meteordevelopment.meteorclient.systems.modules.Category;
+import meteordevelopment.meteorclient.systems.modules.Modules;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.http.HttpResponse;
-
-public class WDC implements ModInitializer {
-    public static final String MOD_ID = "wdc";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+public class WDC extends MeteorAddon {
+    public static final Logger LOG = LogUtils.getLogger();
+    public static final Category CATEGORY = new Category("World Downloader");
 
     @Override
     public void onInitialize() {
+        LOG.info("Initializing World Downloader Client");
 
+        Modules.get().add(new ClientModule());
+    }
+
+    @Override
+    public void onRegisterCategories() {
+        Modules.registerCategory(CATEGORY);
+    }
+
+    @Override
+    public String getPackage() {
+        return "com.beveled.wdc";
+    }
+
+    @Override
+    public GithubRepo getRepo() {
+        return new GithubRepo("CubeBeveled", "world-downloader-mod");
     }
 }
