@@ -8,6 +8,8 @@ import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import org.slf4j.Logger;
 
+import java.awt.*;
+
 public class WDC extends MeteorAddon {
     public static final Logger LOG = LogUtils.getLogger();
     public static final Category CATEGORY = new Category("World Downloader");
@@ -32,5 +34,23 @@ public class WDC extends MeteorAddon {
     @Override
     public GithubRepo getRepo() {
         return new GithubRepo("CubeBeveled", "world-downloader-mod");
+    }
+
+    public static boolean isInBounds(Point bpos1, Point bpos2, Point pos) {
+        int x1 = bpos1.x;
+        int z1 = bpos1.y;
+
+        int x2 = bpos2.x;
+        int z2 = bpos2.y;
+
+        int px = pos.x;
+        int pz = pos.y;
+
+        int minX = Math.min(x1, x2);
+        int maxX = Math.max(x1, x2);
+        int minZ = Math.min(z1, z2);
+        int maxZ = Math.max(z1, z2);
+
+        return px >= minX && px <= maxX && pz >= minZ && pz <= maxZ;
     }
 }
