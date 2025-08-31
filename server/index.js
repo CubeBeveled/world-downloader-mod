@@ -19,11 +19,15 @@ app.post("/newchunk/:server/:author/:version/:dimension/:x/:z", (req, res) => {
   const z = cleanString(req.params.z);
   const time = Date.now();
 
+  const chunkData = req.body;
+
+  if (!chunkData || chunkData.length == 0) {
+    return res.status(400).json({ error: "No chunk data received" });
+  }
+
   console.log(
     `Received chunk ${x},${z} from ${author} in ${dimension} (${server})`
   );
-
-  const chunkData = Buffer.from(req.body.toString(), "base64");
 
   const chunkPath = `${worldSavePath}/${server}/${dimension}`;
   if (!fs.existsSync(chunkPath)) fs.mkdirSync(chunkPath, { recursive: true });
@@ -32,7 +36,7 @@ app.post("/newchunk/:server/:author/:version/:dimension/:x/:z", (req, res) => {
     chunkData
   );
 
-  res.status(200);
+  res.status(200).send();
 });
 
 app.use("/chunk", express.static(worldSavePath));
@@ -71,6 +75,7 @@ function cleanString(str) {
 }
 
 function getChunkMetadata(filename, metadataVersion) {
+  filename = filename.replace(".bin", "");
   let metadata;
 
   switch (metadataVersion) {

@@ -8,7 +8,6 @@ import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ServerInfo;
-import net.minecraft.component.Component;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
 import net.minecraft.text.Text;
@@ -26,7 +25,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -85,8 +83,12 @@ public class ClientPlayNetworkHandlerMixin {
                         .build();
 
                     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    if (response.statusCode() != 200) {
+                        ChatUtils.sendMsg(Text.of("Server error: " + response.body()));
+                    }
                 } catch (IOException | URISyntaxException | InterruptedException e) {
-                    WDC.LOG.error("Error while sending chunk: {}", e);
+                    ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.getMessage()));
                     e.printStackTrace();
                 }
             });
