@@ -2,9 +2,7 @@
   "required": true,
   "package": "com.beveled.wdc.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": [
-    "ClientPlayNetworkHandlerMixin"
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

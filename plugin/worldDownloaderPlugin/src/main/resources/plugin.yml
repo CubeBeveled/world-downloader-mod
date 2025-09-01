@@ -1,0 +1,15 @@
+name: WorldDownloaderPlugin
+version: '1.0-SNAPSHOT'
+main: com.beveled.worldDownloaderPlugin.WorldDownloaderPlugin
+api-version: '1.21'
+authors: [ BeveledCube ]
+commands:
+  paste:
+    description: "Paste the downloaded world into the world"
+    usage: "/paste <save folder name> <server> <dimension>"
+    permission: wdp.admin
+    permission-message: "You do not have permission to use this command"
+permissions:
+  wdp.admin:
+    description: Admin-level type shi
+    default: op
