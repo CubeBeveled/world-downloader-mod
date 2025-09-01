@@ -45,3 +45,7 @@ node_modules/
 world/
 package-lock.json
 yarn.lock
+
+# plugin
+/plugin/shelf/
+/plugin/workspace.xml

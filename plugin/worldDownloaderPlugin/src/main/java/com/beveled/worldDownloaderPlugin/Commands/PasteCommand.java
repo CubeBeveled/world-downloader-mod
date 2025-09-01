@@ -55,7 +55,11 @@ public class PasteCommand implements CommandExecutor, TabExecutor {
                                             obj.get("z").getAsDouble()
                                     ));
 
-                                    blockInWorld.setType(Objects.requireNonNull(Material.matchMaterial(obj.get("state").getAsString())));
+                                    String state = obj.get("state").getAsString();
+                                    Material material = Material.matchMaterial(state);
+                                    if (material == null) {
+                                        WorldDownloaderPlugin.getInstance().getLogger().warning("Block material not found for" + state);
+                                    } else blockInWorld.setType(material);
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -66,7 +70,8 @@ public class PasteCommand implements CommandExecutor, TabExecutor {
                     } else return false;
                 } else return false;
             } else return false;
-        }return false;
+        }
+        return false;
     }
 
     @Override
