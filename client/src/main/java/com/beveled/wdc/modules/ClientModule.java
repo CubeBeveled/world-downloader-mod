@@ -21,6 +21,8 @@ import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -88,7 +90,7 @@ public class ClientModule extends Module {
     private final Setting<Integer> boundPosBX = sgBoundaries.add(new IntSetting.Builder()
         .name("boundary-corner-b-x")
         .description("The X coordinate for the second point of the boundary")
-        .defaultValue(130000)
+        .defaultValue(-130000)
         .visible(useBoundaries::get)
         .build()
     );
@@ -96,7 +98,7 @@ public class ClientModule extends Module {
     private final Setting<Integer> boundPosBZ = sgBoundaries.add(new IntSetting.Builder()
         .name("boundary-corner-b-z")
         .description("The Z coordinate for the second point of the boundary")
-        .defaultValue(130000)
+        .defaultValue(-130000)
         .visible(useBoundaries::get)
         .build()
     );
@@ -162,9 +164,12 @@ public class ClientModule extends Module {
         );
 
         executor.submit(() -> {
-            JsonArray blockStates = new JsonArray();
+            List<String> blocks = new ArrayList<>();
 
-            for (ChunkSection section : chunk.getSectionArray()) {
+            ChunkSection[] sections = chunk.getSectionArray();
+
+            for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+                ChunkSection section = sections[sectionIndex];
                 if (section.isEmpty()) continue;
 
                 for (int y = 0; y < 16; y++) {
@@ -173,13 +178,7 @@ public class ClientModule extends Module {
                             BlockState state = section.getBlockState(x, y, z);
                             if (state.isAir()) continue;
 
-                            JsonObject obj = new JsonObject();
-                            obj.addProperty("x", x);
-                            obj.addProperty("y", y);
-                            obj.addProperty("z", z);
-                            obj.addProperty("state", Registries.BLOCK.getId(state.getBlock()).toString());
-
-                            blockStates.add(obj);
+                            blocks.add(String.format("%s,%s,%s:%s", x, sectionIndex * 16 + y, z, Registries.BLOCK.getId(state.getBlock())));
                         }
                     }
                 }
@@ -192,19 +191,29 @@ public class ClientModule extends Module {
                     .header("Server-Address", serverInfo.address)
                     .header("Client-Version", version)
                     .header("Author", username)
-                    .POST(HttpRequest.BodyPublishers.ofString(blockStates.toString()))
+                    .POST(HttpRequest.BodyPublishers.ofString(String.join(";", blocks)))
                     .build();
 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                blocks.clear();
 
                 if (debug.get())
                     ChatUtils.sendMsg(Text.of(String.format("Sent data in chunk %s,%s", chunkPos.x, chunkPos.z)));
 
                 if (response.statusCode() != 200) {
-                    ChatUtils.sendMsg(Text.of("Chunk server error: " + response.body()));
+                    if (isActive()) {
+                        ChatUtils.sendMsg(Text.of("Chunk server error: " + response.body()));
+                        toggle();
+                        executor.close();
+                    }
                 }
             } catch (IOException | URISyntaxException | InterruptedException e) {
-                ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.getMessage()));
+                if (isActive()) {
+                    ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.getMessage()));
+                    toggle();
+                    executor.close();
+                }
+
                 e.printStackTrace();
             }
         });

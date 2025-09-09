@@ -7,24 +7,34 @@ parentPort.on("message", (data) => {
   const chunkPath = `${workerData.worldSavePath}/${server}/${dimension}`;
   if (!fs.existsSync(chunkPath)) fs.mkdirSync(chunkPath, { recursive: true });
 
-  const chunkFilePath = `${chunkPath}/${chunkX} ${chunkZ} ${author} ${version}.json`;
+  const chunkFilePath = `${chunkPath}/${chunkX} ${chunkZ} ${author} ${version}.bc`; // bevelchunk format frfr
   const blockMap = new Map();
 
   if (fs.existsSync(chunkFilePath)) {
-    const blockArray = JSON.parse(fs.readFileSync(chunkFilePath).toString());
+    const blockArray = fs.readFileSync(chunkFilePath).toString().split(";");
 
     for (const b of blockArray) {
-      blockMap.set(getPosString(b.x, b.y, b.z), b.state);
+      const [coords, state] = b.split(":");
+      const [x, y, z] = coords.split(",");
+
+      blockMap.set(getPosString(x, y, z), state);
     }
   }
 
-  for (const b of blocks) {
-    blockMap.set(getPosString(b.x, b.y, b.z), b.state);
+  for (const b of blocks.split(";")) {
+    const [coords, state] = b.split(":");
+    const [x, y, z] = coords.split(",");
+
+    blockMap.set(getPosString(x, y, z), state);
   }
 
   const newBlockArray = Array.from(blockMap.entries()).map((e) => {
-    return { ...fromPosStr(e[0]), state: e[1] };
+    return `${e[0]}:${e[1]}`;
   });
 
-  fs.writeFileSync(chunkFilePath, JSON.stringify(newBlockArray));
+  fs.writeFileSync(chunkFilePath, newBlockArray.join(";"));
 });
+
+function getPosString(x, y, z) {
+  return `${x},${y},${z}`;
+}

@@ -43,7 +43,9 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
   const author = cleanString(req.get("Author"));
   checkMissing(author);
 
-  const dimension = cleanString(req.params.dimension);
+  const dimension = cleanString(
+    req.params.dimension.replaceAll("minecraft:", "")
+  );
   checkMissing(dimension);
 
   const chunkX = cleanString(req.params.x);
@@ -82,6 +84,8 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
     res.status(400).send("what the fuck are you sending");
   }
 
+  res.status(200).send();
+
   saveChunk({
     server,
     version,
@@ -91,8 +95,6 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
     chunkZ,
     blocks,
   });
-
-  res.status(200).send();
 });
 
 if (publicChunks) {
@@ -139,7 +141,13 @@ function saveChunk(data) {
 
 function cleanString(str) {
   return str
-    ? str.replaceAll(" ", "_").replaceAll("/", "").replaceAll("\\", "")
+    ? str
+        .replaceAll(" ", "_")
+        .replaceAll("/", "")
+        .replaceAll("\\", "")
+        .replaceAll(",", "")
+        .replaceAll(";", "")
+        .replaceAll(":", "")
     : null;
 }
 
@@ -148,15 +156,6 @@ function isParsableInt(str) {
   const num = Number(str);
 
   return Number.isInteger(num) && str.trim() !== "";
-}
-
-function getPosString(x, y, z) {
-  return `${x},${y},${z}`;
-}
-
-function fromPosStr(str) {
-  const [x, y, z] = str.split(",");
-  return { x, y, z };
 }
 
 function getChunkMetadata(filename, metadataVersion) {
