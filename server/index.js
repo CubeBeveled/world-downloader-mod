@@ -1,12 +1,15 @@
+const { Worker } = require("worker_threads");
 const express = require("express");
+const color = require("colors");
 const fs = require("fs");
 const app = express();
-const colors = require("colors");
 
 const port = 3000;
-const asyncSaving = true;
+const workerCount = 2;
 const worldSavePath = "world";
 const publicChunks = false;
+const workers = [];
+let workerIndex = 0;
 
 if (!fs.existsSync(worldSavePath)) fs.mkdirSync(worldSavePath);
 
@@ -16,6 +19,15 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
   function checkMissing(value) {
     if (!value) {
       res.status(400).send(`A value is missing from your request`);
+      return false;
+    }
+
+    return true;
+  }
+
+  function validNumberCheck(value) {
+    if (!isParsableInt(value)) {
+      res.status(400).send(`A value is not a parsable int`);
       return false;
     }
 
@@ -36,9 +48,11 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
 
   const chunkX = cleanString(req.params.x);
   checkMissing(chunkX);
+  validNumberCheck(chunkX);
 
   const chunkZ = cleanString(req.params.z);
   checkMissing(chunkZ);
+  validNumberCheck(chunkZ);
 
   const time = Date.now();
 
@@ -50,44 +64,33 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
 
   if (Array.isArray(blocks))
     console.log(
-      `Received ${
-        req.body.length
-      } ${chunkX},${chunkZ} from ${author} in ${dimension} (${server} ${req.get(
-        "content-length"
-      )})`
+      color.green(
+        `Received ${
+          blocks.length
+        } ${chunkX},${chunkZ} from ${author} in ${dimension} (${server} ${req.get(
+          "content-length"
+        )})`
+      )
     );
   else {
     console.log(
-      `Received ${chunkX},${chunkZ} from ${author} in ${dimension} (${server})`
+      color.yellow(
+        `Received fucked up ${chunkX},${chunkZ} from ${author} in ${dimension} (${server})`
+      )
     );
     console.log(blocks);
-    return res.status(400).send(`what the fuck are you sending`);
+    res.status(400).send("what the fuck are you sending");
   }
 
-  const chunkPath = `${worldSavePath}/${server}/${dimension}`;
-  if (!fs.existsSync(chunkPath)) fs.mkdirSync(chunkPath, { recursive: true });
-
-  const chunkFilePath = `${chunkPath}/${chunkX} ${chunkZ} ${author} ${version}.json`;
-  const blockMap = new Map();
-
-  // If the chunk already exists read the contents
-  if (fs.existsSync(chunkFilePath)) {
-    const blockArray = JSON.parse(fs.readFileSync(chunkFilePath).toString());
-    for (const b of blockArray) {
-      blockMap.set(getPosString(b.x, b.y, b.z), b.state);
-    }
-  }
-
-  // Write the new block data
-  for (const b of req.body) {
-    blockMap.set(getPosString(b.x, b.y, b.z), b.state);
-  }
-
-  const newBlockArray = Array.from(blockMap.entries()).map((e) => {
-    return { ...fromPosStr(e[0]), state: e[1] };
+  saveChunk({
+    server,
+    version,
+    author,
+    dimension,
+    chunkX,
+    chunkZ,
+    blocks,
   });
-  if (asyncSaving) fs.writeFile(chunkFilePath, JSON.stringify(newBlockArray));
-  else fs.writeFileSync(chunkFilePath, JSON.stringify(newBlockArray));
 
   res.status(200).send();
 });
@@ -120,14 +123,31 @@ if (publicChunks) {
   });
 }
 
+for (let i = 0; i < workerCount; i++) {
+  workers.push(new Worker("./worker.js", { workerData: { worldSavePath } }));
+}
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+function saveChunk(data) {
+  workers[workerIndex].postMessage(data);
+
+  workerIndex = (workerIndex + 1) % workers.length;
+}
 
 function cleanString(str) {
   return str
     ? str.replaceAll(" ", "_").replaceAll("/", "").replaceAll("\\", "")
     : null;
+}
+
+function isParsableInt(str) {
+  if (typeof str !== "string") return false;
+  const num = Number(str);
+
+  return Number.isInteger(num) && str.trim() !== "";
 }
 
 function getPosString(x, y, z) {
@@ -159,7 +179,7 @@ function getChunkMetadata(filename, metadataVersion) {
       };
 
     default:
-      console.log(colors.red(`Metadata version ${filename} doesnt exist`));
+      console.log(color.red(`Metadata version ${filename} doesnt exist`));
       return null;
   }
 }
