@@ -6,7 +6,12 @@ authors: [ BeveledCube ]
 commands:
   paste:
     description: "Paste the downloaded world into the world"
-    usage: "/paste <save folder name> <server> <dimension>"
+    usage: "/paste <save folder name> <server> <dimension> <paste delay (ticks)>"
+    permission: wdp.admin
+    permission-message: "You do not have permission to use this command"
+  chunktp:
+    description: "Teleport to a chunk"
+    usage: "/chunktp <x> <z>"
     permission: wdp.admin
     permission-message: "You do not have permission to use this command"
 permissions:
