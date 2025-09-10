@@ -1,21 +1,16 @@
 package com.beveled.wdc.modules;
 
 import com.beveled.wdc.WDC;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import meteordevelopment.meteorclient.events.game.GameLeftEvent;
 import meteordevelopment.meteorclient.events.world.ChunkDataEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
@@ -31,8 +26,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,12 +34,19 @@ public class ClientModule extends Module {
     private final SettingGroup sgAutomation = this.settings.getDefaultGroup();
     private final SettingGroup sgBoundaries = this.settings.getDefaultGroup();
     private static final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final ExecutorService executor = Executors.newFixedThreadPool(4);
+    private static ExecutorService executor;
 
     private final Setting<String> centralUrl = sgGeneral.add(new StringSetting.Builder()
         .name("central-url")
         .description("The URL of the central server.")
         .defaultValue("http://us1.sythoptic.com:25008")
+        .build()
+    );
+
+    private final Setting<Integer> threadCount = sgGeneral.add(new IntSetting.Builder()
+        .name("thread-count")
+        .description("The number of threads to use to process and send chunks")
+        .defaultValue(4)
         .build()
     );
 
@@ -135,6 +135,12 @@ public class ClientModule extends Module {
     @Override
     public void onActivate() {
         WDC.LOG.info(String.format("Sending chunks to %s", Modules.get().get(ClientModule.class).settings.getDefaultGroup().get("central-url")));
+        executor = Executors.newFixedThreadPool(threadCount.get());
+    }
+
+    @Override
+    public void onDeactivate() {
+        executor.close();
     }
 
     @EventHandler
@@ -212,19 +218,19 @@ public class ClientModule extends Module {
                     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                     if (debug.get())
-                        ChatUtils.sendMsg(Text.of(String.format("Sent blocks in chunk %s,%s (%s blocks)", chunkPos.x, chunkPos.z, blocks.toArray().length)));
+                        warning(String.format("Sent blocks in chunk %s,%s (%s blocks)", chunkPos.x, chunkPos.z, blocks.toArray().length));
 
                     blocks.clear();
 
                     if (response.statusCode() != 200) {
                         if (isActive()) {
-                            ChatUtils.sendMsg(Text.of("Chunk server error: " + response.body()));
+                            warning("Chunk server error: " + response.body());
                             if (disableOnError.get()) toggle();
                         }
                     }
                 } catch (IOException | URISyntaxException | InterruptedException e) {
                     if (isActive()) {
-                        ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.getMessage()));
+                        warning("Error while sending chunk: " + e.getMessage());
                         toggle();
                     }
 
