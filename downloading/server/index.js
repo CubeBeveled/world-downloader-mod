@@ -13,7 +13,7 @@ let workerIndex = 0;
 
 if (!fs.existsSync(worldSavePath)) fs.mkdirSync(worldSavePath);
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.text({ limit: "2mb" }));
 
 app.post("/blocks/:dimension/:x/:z", (req, res) => {
   function checkMissing(value) {
@@ -61,17 +61,17 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
   const blocks = req.body;
 
   if (!blocks || blocks.length == 0) {
+    console.log("No chunk data");
+    console.log(blocks);
     return res.status(400).json("No chunk data");
   }
 
-  if (Array.isArray(blocks))
+  if (blocks.includes(",") && blocks.includes(":"))
     console.log(
       color.green(
         `Received ${
-          blocks.length
-        } ${chunkX},${chunkZ} from ${author} in ${dimension} (${server} ${req.get(
-          "content-length"
-        )})`
+          blocks.split(";").length
+        } ${chunkX},${chunkZ} from ${author} in ${dimension} (${server})`
       )
     );
   else {
@@ -80,7 +80,7 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
         `Received fucked up ${chunkX},${chunkZ} from ${author} in ${dimension} (${server})`
       )
     );
-    console.log(blocks);
+    //console.log(blocks);
     res.status(400).send("what the fuck are you sending");
   }
 

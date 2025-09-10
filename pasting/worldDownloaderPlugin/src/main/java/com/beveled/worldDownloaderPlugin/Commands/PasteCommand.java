@@ -14,10 +14,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 
 public class PasteCommand implements CommandExecutor, TabExecutor {
@@ -36,7 +39,7 @@ public class PasteCommand implements CommandExecutor, TabExecutor {
                     File chunks = new File(chunksPath);
 
                     if (chunks.isDirectory()) {
-                        sender.sendMessage("Pasting saved world");
+                        sender.sendMessage("Pasting saved " + args[2]);
 
                         World world;
                         if (sender instanceof Player player) world = player.getWorld();
@@ -52,23 +55,27 @@ public class PasteCommand implements CommandExecutor, TabExecutor {
 
                         for (File chunkFile : Objects.requireNonNull(chunks.listFiles())) {
                             Bukkit.getScheduler().runTaskLater(WorldDownloaderPlugin.getInstance(), () -> {
-                                try (FileReader reader = new FileReader(chunkFile.getPath())) {
-                                    JsonArray chunkBlocks = JsonParser.parseReader(reader).getAsJsonArray();
+                                try {
+                                    sender.sendMessage("Pasting " + chunkFile.getName());
+                                    String content = Files.readString(chunkFile.toPath(), StandardCharsets.UTF_8);
+                                    String[] blocks = content.split(";");
 
-                                    for (JsonElement block : chunkBlocks) {
-                                        JsonObject obj = block.getAsJsonObject();
+                                    for (String block : blocks) {
+                                        String[] blockNState = block.split(":");
+                                        String[] pos = blockNState[0].split(",");
 
                                         Location blockLocation = new Location(
                                                 finalWorld,
-                                                obj.get("x").getAsDouble(),
-                                                obj.get("y").getAsDouble(),
-                                                obj.get("z").getAsDouble()
+                                                parseDouble(pos[0]),
+                                                parseDouble(pos[1]),
+                                                parseDouble(pos[2])
                                         );
 
                                         Block blockInWorld = finalWorld.getBlockAt(blockLocation);
 
-                                        String state = obj.get("state").getAsString();
+                                        String state = blockNState[1];
                                         Material material = Material.matchMaterial(state);
+
                                         if (material == null) {
                                             WorldDownloaderPlugin.getInstance().getLogger().warning("Block material not found for " + state);
                                         } else blockInWorld.setType(material);

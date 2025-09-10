@@ -52,7 +52,14 @@ public class ClientModule extends Module {
 
     private final Setting<Boolean> disableOnLeave = sgAutomation.add(new BoolSetting.Builder()
         .name("disable-on-leave")
-        .description("Should the module be disabled on leave")
+        .description("Should the module disable itself on leave")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Boolean> disableOnError = sgAutomation.add(new BoolSetting.Builder()
+        .name("disable-on-leave")
+        .description("Should the module disable itself when theres a server error")
         .defaultValue(true)
         .build()
     );
@@ -178,7 +185,14 @@ public class ClientModule extends Module {
                             BlockState state = section.getBlockState(x, y, z);
                             if (state.isAir()) continue;
 
-                            blocks.add(String.format("%s,%s,%s:%s", x, sectionIndex * 16 + y, z, Registries.BLOCK.getId(state.getBlock())));
+                            String blockName = Registries.BLOCK.getId(state.getBlock()).toString().replace("minecraft:", "");
+                            blocks.add(String.format(
+                                "%s,%s,%s:%s",
+                                (chunkPos.x * 16) + x,
+                                (sectionIndex * 16) + y,
+                                (chunkPos.z * 16) + z,
+                                blockName
+                            ));
                         }
                     }
                 }
@@ -187,7 +201,7 @@ public class ClientModule extends Module {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(finalUrl))
-                    .header("Content-Type", "application/json")
+                    .header("Content-Type", "text/plain")
                     .header("Server-Address", serverInfo.address)
                     .header("Client-Version", version)
                     .header("Author", username)
@@ -200,11 +214,11 @@ public class ClientModule extends Module {
                 if (debug.get())
                     ChatUtils.sendMsg(Text.of(String.format("Sent data in chunk %s,%s", chunkPos.x, chunkPos.z)));
 
+
                 if (response.statusCode() != 200) {
                     if (isActive()) {
                         ChatUtils.sendMsg(Text.of("Chunk server error: " + response.body()));
-                        toggle();
-                        executor.close();
+                        if (disableOnError.get()) toggle();
                     }
                 }
             } catch (IOException | URISyntaxException | InterruptedException e) {
