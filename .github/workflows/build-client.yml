@@ -9,9 +9,11 @@ on: [pull_request, push]
 jobs:
   build:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: downloading/client
+
     steps:
-      - name: go to addon folder
-        run: cd downloading/client
       - name: checkout repository
         uses: actions/checkout@v4
       - name: validate gradle wrapper
