@@ -9,7 +9,8 @@ const app = express();
 */
 const port = 3000;
 const workerCount = 2;
-const publicChunks = false; // If the list of chunks and their content should be public
+const publicChunks = true; // If the endpoint where a list of chunks should be enabled. This also toggles access to the content of said chunks
+const chunkLeaderboard = true; // If the endpoint where a list of players and how many chunks they sent should be enabled
 const worldSavePath = "world";
 
 const workers = [];
@@ -128,6 +129,41 @@ if (publicChunks) {
     }
 
     res.json(dimensions);
+  });
+}
+
+if (chunkLeaderboard) {
+  app.get("/chunkleaderboard", (req, res) => {
+    let dimensions = new Map();
+
+    for (const server of fs.readdirSync(worldSavePath)) {
+      for (const dim of fs.readdirSync(`${worldSavePath}/${server}`)) {
+        dimensions.set(dim, new Map());
+        const chunkFiles = fs.readdirSync(`${worldSavePath}/${server}/${dim}`);
+        const dimMap = dimensions.get(dim);
+
+        for (const chunk of chunkFiles) {
+          const { x, z, author, version, timestamp } = getChunkMetadata(
+            chunk,
+            2
+          );
+          const player = dimMap.get(author);
+
+          if (player) dimMap.set(author, player + 1);
+          else dimMap.set(author, 1);
+        }
+      }
+    }
+
+    let response = {};
+    dimensions.forEach((players, dimension) => {
+      response[dimension] = {};
+      players.forEach((count, player) => {
+        response[dimension][player] = count;
+      });
+    });
+
+    res.json(response);
   });
 }
 
