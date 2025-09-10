@@ -164,7 +164,7 @@ if (chunkLeaderboard) {
           body { font-family: Arial, sans-serif; background: #1e1e1e; color: #f0f0f0; }
           h1 { text-align: center; }
           .dimension { margin-bottom: 40px; }
-          table { width: 60%; margin: 0 auto; border-collapse: collapse; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+          table { width: fit-content; margin: 0 auto; border-collapse: collapse; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
           th, td { padding: 12px 15px; border: 1px solid #444; text-align: center; }
           th { background: #333; color: #fff; }
           tr:nth-child(even) { background: #2a2a2a; }
