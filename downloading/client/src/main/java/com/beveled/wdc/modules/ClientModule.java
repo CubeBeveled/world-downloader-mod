@@ -210,11 +210,11 @@ public class ClientModule extends Module {
                         .build();
 
                     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                    blocks.clear();
 
                     if (debug.get())
-                        ChatUtils.sendMsg(Text.of(String.format("Sent data in chunk %s,%s", chunkPos.x, chunkPos.z)));
+                        ChatUtils.sendMsg(Text.of(String.format("Sent blocks in chunk %s,%s (%s blocks)", chunkPos.x, chunkPos.z, blocks.toArray().length)));
 
+                    blocks.clear();
 
                     if (response.statusCode() != 200) {
                         if (isActive()) {
