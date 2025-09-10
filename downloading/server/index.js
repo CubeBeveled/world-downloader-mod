@@ -168,6 +168,7 @@ if (chunkLeaderboard) {
 }
 
 for (let i = 0; i < workerCount; i++) {
+  console.log(color.green(`Starting worker ${i}`));
   workers.push(new Worker("./worker.js", { workerData: { worldSavePath } }));
 }
 
