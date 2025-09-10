@@ -9,7 +9,7 @@ const app = express();
 */
 const port = 3000;
 const workerCount = 2;
-const publicChunks = true; // If the endpoint where a list of chunks should be enabled. This also toggles access to the content of said chunks
+const publicChunks = false; // If the endpoint where a list of chunks should be enabled. This also toggles access to the content of said chunks
 const chunkLeaderboard = true; // If the endpoint where a list of players and how many chunks they sent should be enabled
 const worldSavePath = "world";
 
