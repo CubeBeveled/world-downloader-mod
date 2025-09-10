@@ -218,7 +218,7 @@ public class ClientModule extends Module {
                     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
                     if (debug.get())
-                        warning(String.format("Sent blocks in chunk %s,%s (%s blocks)", chunkPos.x, chunkPos.z, blocks.toArray().length));
+                        info(String.format("Sent blocks in chunk %s,%s (%s blocks)", chunkPos.x, chunkPos.z, blocks.toArray().length));
 
                     blocks.clear();
 
