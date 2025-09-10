@@ -155,6 +155,80 @@ if (chunkLeaderboard) {
       }
     }
 
+    let html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Chunk Leaderboard</title>
+        <style>
+          body { font-family: Arial, sans-serif; background: #1e1e1e; color: #f0f0f0; }
+          h1 { text-align: center; }
+          .dimension { margin-bottom: 40px; }
+          table { width: 60%; margin: 0 auto; border-collapse: collapse; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+          th, td { padding: 12px 15px; border: 1px solid #444; text-align: center; }
+          th { background: #333; color: #fff; }
+          tr:nth-child(even) { background: #2a2a2a; }
+          tr:nth-child(odd) { background: #252525; }
+        </style>
+      </head>
+      <body>
+        <h1>Chunk Leaderboard</h1>
+  `;
+
+    dimensions.forEach((players, dimension) => {
+      html += `
+      <div class="dimension">
+        <h2 style="text-align:center;">${dimension}</h2>
+        <table>
+          <tr>
+            <th>Player</th>
+            <th>Chunks</th>
+          </tr>
+    `;
+
+      const sortedPlayers = Array.from(players.entries()).sort(
+        (a, b) => b[1] - a[1]
+      );
+
+      sortedPlayers.forEach(([player, count]) => {
+        html += `
+          <tr>
+            <td>${player}</td>
+            <td>${count}</td>
+          </tr>
+      `;
+      });
+
+      html += `</table></div>`;
+    });
+
+    html += `
+      </body>
+    </html>
+  `;
+
+    res.send(html);
+  });
+
+  app.post("/chunkleaderboard", (req, res) => {
+    let dimensions = new Map();
+    for (const server of fs.readdirSync(worldSavePath)) {
+      for (const dim of fs.readdirSync(`${worldSavePath}/${server}`)) {
+        dimensions.set(dim, new Map());
+        const chunkFiles = fs.readdirSync(`${worldSavePath}/${server}/${dim}`);
+        const dimMap = dimensions.get(dim);
+        for (const chunk of chunkFiles) {
+          const { x, z, author, version, timestamp } = getChunkMetadata(
+            chunk,
+            2
+          );
+          const player = dimMap.get(author);
+          if (player) dimMap.set(author, player + 1);
+          else dimMap.set(author, 1);
+        }
+      }
+    }
+
     let response = {};
     dimensions.forEach((players, dimension) => {
       response[dimension] = {};
