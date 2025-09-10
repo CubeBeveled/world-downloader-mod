@@ -170,66 +170,66 @@ public class ClientModule extends Module {
             chunkPos.z
         );
 
-        executor.submit(() -> {
-            List<String> blocks = new ArrayList<>();
+        if (!executor.isShutdown())
+            executor.submit(() -> {
+                List<String> blocks = new ArrayList<>();
 
-            ChunkSection[] sections = chunk.getSectionArray();
+                ChunkSection[] sections = chunk.getSectionArray();
 
-            for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-                ChunkSection section = sections[sectionIndex];
-                if (section.isEmpty()) continue;
+                for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+                    ChunkSection section = sections[sectionIndex];
+                    if (section.isEmpty()) continue;
 
-                for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 16; z++) {
-                        for (int x = 0; x < 16; x++) {
-                            BlockState state = section.getBlockState(x, y, z);
-                            if (state.isAir()) continue;
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int x = 0; x < 16; x++) {
+                                BlockState state = section.getBlockState(x, y, z);
+                                if (state.isAir()) continue;
 
-                            String blockName = Registries.BLOCK.getId(state.getBlock()).toString().replace("minecraft:", "");
-                            blocks.add(String.format(
-                                "%s,%s,%s:%s",
-                                (chunkPos.x * 16) + x,
-                                (sectionIndex * 16) + y,
-                                (chunkPos.z * 16) + z,
-                                blockName
-                            ));
+                                String blockName = Registries.BLOCK.getId(state.getBlock()).toString().replace("minecraft:", "");
+                                blocks.add(String.format(
+                                    "%s,%s,%s:%s",
+                                    (chunkPos.x * 16) + x,
+                                    (sectionIndex * 16) + y,
+                                    (chunkPos.z * 16) + z,
+                                    blockName
+                                ));
+                            }
                         }
                     }
                 }
-            }
 
-            try {
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(finalUrl))
-                    .header("Content-Type", "text/plain")
-                    .header("Server-Address", serverInfo.address)
-                    .header("Client-Version", version)
-                    .header("Author", username)
-                    .POST(HttpRequest.BodyPublishers.ofString(String.join(";", blocks)))
-                    .build();
+                try {
+                    HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI(finalUrl))
+                        .header("Content-Type", "text/plain")
+                        .header("Server-Address", serverInfo.address)
+                        .header("Client-Version", version)
+                        .header("Author", username)
+                        .POST(HttpRequest.BodyPublishers.ofString(String.join(";", blocks)))
+                        .build();
 
-                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-                blocks.clear();
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                    blocks.clear();
 
-                if (debug.get())
-                    ChatUtils.sendMsg(Text.of(String.format("Sent data in chunk %s,%s", chunkPos.x, chunkPos.z)));
+                    if (debug.get())
+                        ChatUtils.sendMsg(Text.of(String.format("Sent data in chunk %s,%s", chunkPos.x, chunkPos.z)));
 
 
-                if (response.statusCode() != 200) {
-                    if (isActive()) {
-                        ChatUtils.sendMsg(Text.of("Chunk server error: " + response.body()));
-                        if (disableOnError.get()) toggle();
+                    if (response.statusCode() != 200) {
+                        if (isActive()) {
+                            ChatUtils.sendMsg(Text.of("Chunk server error: " + response.body()));
+                            if (disableOnError.get()) toggle();
+                        }
                     }
-                }
-            } catch (IOException | URISyntaxException | InterruptedException e) {
-                if (isActive()) {
-                    ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.getMessage()));
-                    toggle();
-                    executor.close();
-                }
+                } catch (IOException | URISyntaxException | InterruptedException e) {
+                    if (isActive()) {
+                        ChatUtils.sendMsg(Text.of("Error while sending chunk: " + e.getMessage()));
+                        toggle();
+                    }
 
-                e.printStackTrace();
-            }
-        });
+                    e.printStackTrace();
+                }
+            });
     }
 }
