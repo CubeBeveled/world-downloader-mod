@@ -34,7 +34,7 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
     return true;
   }
 
-  const server = cleanString(req.get("Server-Address"));
+  let server = cleanString(req.get("Server-Address"));
   checkMissing(server);
 
   const version = cleanString(req.get("Client-Version"));
@@ -65,6 +65,8 @@ app.post("/blocks/:dimension/:x/:z", (req, res) => {
     console.log(blocks);
     return res.status(400).json("No chunk data");
   }
+
+  if (server.endsWith("6b6t.org")) server = "6b6t.org";
 
   if (blocks.includes(",") && blocks.includes(":"))
     console.log(
