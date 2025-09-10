@@ -4,10 +4,14 @@ const color = require("colors");
 const fs = require("fs");
 const app = express();
 
+/*
+  SETTINGS
+*/
 const port = 3000;
 const workerCount = 2;
+const publicChunks = false; // If the list of chunks and their content should be public
 const worldSavePath = "world";
-const publicChunks = false;
+
 const workers = [];
 let workerIndex = 0;
 
