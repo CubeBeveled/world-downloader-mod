@@ -58,7 +58,7 @@ public class ClientModule extends Module {
     );
 
     private final Setting<Boolean> disableOnError = sgAutomation.add(new BoolSetting.Builder()
-        .name("disable-on-leave")
+        .name("disable-on-error")
         .description("Should the module disable itself when theres a server error")
         .defaultValue(true)
         .build()

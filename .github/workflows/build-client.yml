@@ -30,5 +30,5 @@ jobs:
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Addon-1.21.8-1.21.6
+          name: Addon
           path: downloading/client/build/libs/
