@@ -154,7 +154,7 @@ public class ClientModule extends Module {
         ChunkPos chunkPos = chunk.getPos();
 
         if (
-            !isInBounds(new Point(boundPosAX.get(), boundPosAZ.get()), new Point(boundPosBX.get(), boundPosBZ.get()), new Point(chunk.getPos().x, chunk.getPos().z)) &&
+            !isInBounds(new Point(boundPosAX.get(), boundPosAZ.get()), new Point(boundPosBX.get(), boundPosBZ.get()), new Point(chunk.getPos().x * 16, chunk.getPos().z * 16)) &&
                 useBoundaries.get()
         )
             return;
